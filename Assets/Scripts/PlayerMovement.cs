@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayeMovement : MonoBehaviour
+public class PlayerMovement : MonoBehaviour
 {
     private Rigidbody2D _rb;
     private FrameInput _frameInput;
@@ -44,7 +44,7 @@ public class PlayeMovement : MonoBehaviour
     private bool _cachedQueryStartInColliders;
     public LayerMask groundCheckIgnoreLayers;
     public CircleCollider2D _col;
-    public float GroundDistance;
+    public float GroundDistance = 0.5f;
     public struct FrameInput
     {
         public Vector2 Move;
@@ -167,10 +167,11 @@ public class PlayeMovement : MonoBehaviour
     // -------------------------------FIXED UPDATE METHODS--------------
     private void FixedUpdate()
     {
-        CheckCollisions();
+        if (_time > 0.5f)
+            CheckCollisions();
        
         HandleJump();
-        HandleHorizontal();
+        //HandleHorizontal();
 
         Gravity();
 
@@ -183,9 +184,9 @@ public class PlayeMovement : MonoBehaviour
     private void CheckCollisions()
     {
         Physics2D.queriesStartInColliders = false;
-        //Vector2 origin = _col.bounds.center + Vector3.up * 0.5f;
+        Vector2 origin = _col.bounds.center + Vector3.up * 0.5f;
 
-        /*
+        
         bool groundHit = Physics2D.CircleCast
             (
             origin,
@@ -194,7 +195,7 @@ public class PlayeMovement : MonoBehaviour
             GroundDistance,
             ~groundCheckIgnoreLayers.value
             );
-        */
+        
         /*
         int groundedCount = 0;
 
@@ -217,7 +218,7 @@ public class PlayeMovement : MonoBehaviour
         {
             _grounded = true;
             _bufferedJumpUsable = true;
-            //_endedJumpEarly = false;
+            _endedJumpEarly = false;
             // Can call grounded change event
         }
 
@@ -269,7 +270,7 @@ public class PlayeMovement : MonoBehaviour
         else
         {
             var inAirGravity = FallAcceleration;
-            if (_endedJumpEarly && _frameVelocity.y > 0) inAirGravity *= JumpEndEarlyGravityModifier;
+            //if (_endedJumpEarly && _frameVelocity.y > 0) inAirGravity *= JumpEndEarlyGravityModifier;
             //falling
             //else if(frameVelocity.y < 0) Falling?.Invoke();
             GForce = Mathf.MoveTowards(_frameVelocity.y, -MaxFallSpeed, inAirGravity * Time.fixedDeltaTime);
