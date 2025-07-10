@@ -601,6 +601,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f5fff3dee3d967a4b80d0a52ffbcd01d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _debug: 1
   takingInput: 1
   MaxSpeed: 14
   Acceleration: 5.11
@@ -620,7 +621,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   _col: {fileID: 0}
-  GroundDistance: 1
+  GroundDistance: 0.6
 --- !u!212 &1537071085
 SpriteRenderer:
   m_ObjectHideFlags: 0

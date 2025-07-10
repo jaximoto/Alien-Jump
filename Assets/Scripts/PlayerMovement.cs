@@ -7,10 +7,15 @@ public class PlayerMovement : MonoBehaviour
     private FrameInput _frameInput;
     private Vector2 _frameVelocity;
     private float _time;
+    // Circle Cast for ground check
+    private RaycastHit2D _hit;
+    private Vector2 _castOrigin;
+    private float _castRadius;
+    private float _castDistance;
     
 
     //-------------Editor Interface---------------------------
-
+    public bool _debug = false;
     // Horizontal Movement
     public bool takingInput = true;
     public float MaxSpeed = 14f;
@@ -59,7 +64,11 @@ public class PlayerMovement : MonoBehaviour
         _rb = GetComponent<Rigidbody2D>();
         _col = GetComponent<CircleCollider2D>();
         _cachedQueryStartInColliders = Physics2D.queriesStartInColliders;
-      
+
+        _castOrigin = _col.bounds.center + Vector3.up * 0.5f;
+        _castRadius = _col.radius;
+        _castDistance = GroundDistance;
+
     }
 
     // --------------------------UPDATE METHODS------------------
@@ -101,35 +110,38 @@ public class PlayerMovement : MonoBehaviour
     }
 
    
-    /*
+    
     void OnDrawGizmos()
     {
-        //Gather Component Vectors
-        if (ChargeHeld)
+        if (_debug)
         {
-            //Debug.Log($"");
-            Gizmos.color = Color.green;
-            Gizmos.DrawLine(gameObject.transform.position,
-                new Vector3(gameObject.transform.position.x - _frameInput.ChargeDir.x, gameObject.transform.position.y - _frameInput.ChargeDir.y, gameObject.transform.position.z));
-        }
-
-        for (int i = 0; i < _pointTargets.Length; i++)
-        {
-            //ReShaping Force
             Gizmos.color = Color.red;
-            Vector3 target = gameObject.transform.position + (_pointTargets[i] * gameObject.transform.localScale.x);
-            Gizmos.DrawLine(points[i].transform.position, target);
+            DrawCircle(_castOrigin, _castRadius, Color.green);
 
-            //connecting lines
-            Gizmos.color = Color.blue;
+            Vector2 endPoint = _castOrigin + Vector2.down * _castDistance;
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawLine(_castOrigin, endPoint);
 
+            if (_hit.collider)
+                DrawCircle(_hit.point, _castRadius, Color.cyan);
+        }
+        
+    }
 
+    void DrawCircle(Vector2 center, float radius, Color color, int steps = 32)
+    {
+        Gizmos.color = color;
+        float angleStep = 360f / steps;
+        Vector3 prevPoint = center * radius;
 
-            if (i == points.Count - 1) Gizmos.DrawLine(points[i].transform.position, points[0].transform.position);
-            else Gizmos.DrawLine(points[i].transform.position, points[i + 1].transform.position);
+        for (int i = 1; i <= steps; i++)
+        {
+            float angle = i * angleStep * Mathf.Deg2Rad;
+            Vector3 newPoint = center + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+            Gizmos.DrawLine(prevPoint, newPoint);
+            prevPoint = newPoint;
         }
     }
-   */
 
    
 
@@ -184,12 +196,13 @@ public class PlayerMovement : MonoBehaviour
     private void CheckCollisions()
     {
         Physics2D.queriesStartInColliders = false;
-        Vector2 origin = _col.bounds.center + Vector3.up * 0.5f;
-
+        _castOrigin = _col.bounds.center + Vector3.up * 0.5f;
+        _castRadius = _col.radius;
+        _castDistance = GroundDistance;
         
-        bool groundHit = Physics2D.CircleCast
+        _hit = Physics2D.CircleCast
             (
-            origin,
+            _castOrigin,
             _col.radius,
             Vector2.down,
             GroundDistance,
@@ -214,7 +227,7 @@ public class PlayerMovement : MonoBehaviour
 
 
         // Landed on the Ground
-        if (!_grounded && groundHit)
+        if (!_grounded && _hit.collider)
         {
             _grounded = true;
             _bufferedJumpUsable = true;
@@ -223,7 +236,7 @@ public class PlayerMovement : MonoBehaviour
         }
 
         // Left the Ground
-        else if (_grounded && !groundHit)
+        else if (_grounded && !_hit.collider)
         {
             _grounded = false;
             //_frameLeftGrounded = _time;
